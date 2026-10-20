@@ -160,6 +160,33 @@ class MainActivity : AppCompatActivity() {
     // Lifecycle
     // ------------------------------------------------------------------------------------------
 
+
+    private fun showWhatsNewIfNeeded() {
+        val currentVersion =
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0"
+
+        val prefs = getSharedPreferences("whats_new", MODE_PRIVATE)
+        if (prefs.getString("shown_version", "") == currentVersion) return
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("🎉 TikTokTV - Yenilikler")
+            .setMessage(
+                "🚀 Akıllı güncelleme\n\n" +
+                "🎨 AMOLED siyah tema\n\n" +
+                "🖱️ Neon imleç ve kumanda desteği\n\n" +
+                "⚡ Performans iyileştirmeleri\n\n" +
+                "Sürüm: v$currentVersion"
+            )
+            .setCancelable(false)
+            .setPositiveButton("Başlayalım!") { _, _ ->
+                prefs.edit().putString("shown_version", currentVersion).apply()
+            }
+            .create()
+
+        dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.requestFocus()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupFullscreen()
@@ -175,6 +202,10 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
         bindViews()
+
+        uiHandler.postDelayed({
+            if (!isFinishing && !isDestroyed) showWhatsNewIfNeeded()
+        }, 1200)
 
         virtualMouse = VirtualMouse(this, webView) { x, y, dy -> scrollAt(x, y, dy) }
         virtualMouse.speedMultiplier = settings.mouseSpeed
