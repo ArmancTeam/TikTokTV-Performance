@@ -20,13 +20,10 @@ keystore.properties
 *.jks
 *.keystore
 
-# Android / Gradle
 .gradle/
-build/
 **/build/
 local.properties
 *.apk
 *.aab
 *.jks
 *.keystore
-.idea/

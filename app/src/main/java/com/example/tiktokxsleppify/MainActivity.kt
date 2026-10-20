@@ -40,6 +40,10 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import java.io.ByteArrayInputStream
 import java.util.Locale
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
@@ -186,6 +190,7 @@ class MainActivity : AppCompatActivity() {
         val startUrl = urlFromIntent(intent) ?: settings.startPage.url
         markSearchPending(startUrl)
         webView.loadUrl(startUrl)
+        uiHandler.postDelayed({ checkForUpdates(false) }, 5000)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -459,6 +464,56 @@ class MainActivity : AppCompatActivity() {
             setOnCheckedChangeListener { _, value -> onChange(value) }
         }
 
+    // Checks the public GitHub Releases API off the UI thread.
+    private fun checkForUpdates(manual: Boolean) {
+        thread(name = "GitHubUpdateCheck") {
+            try {
+                val connection = (URL("https://api.github.com/repos/ArmancTeam/TikTokTV-Performance/releases/latest")
+                    .openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 8000
+                    readTimeout = 8000
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "TikTokTV-Android")
+                }
+                try {
+                    if (connection.responseCode != 200) throw IllegalStateException("HTTP ${connection.responseCode}")
+                    val release = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                    val tag = release.optString("tag_name").removePrefix("v")
+                    val current = packageManager.getPackageInfo(packageName, 0).versionName ?: "0"
+                    fun parts(v: String) = v.split('.').map { it.toIntOrNull() ?: 0 }
+                    val a = parts(tag); val b = parts(current)
+                    val newer = (0 until maxOf(a.size, b.size)).firstNotNullOfOrNull { i ->
+                        val x = a.getOrElse(i) { 0 }; val y = b.getOrElse(i) { 0 }
+                        if (x == y) null else x > y
+                    } ?: false
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        if (newer) {
+                            AlertDialog.Builder(this@MainActivity)
+                                .setTitle("Yeni sürüm: v$tag")
+                                .setMessage("Mevcut sürüm: v$current\nYeni sürüm: v$tag\n\nGitHub'dan APK indirme sayfasını açmak ister misin?")
+                                .setPositiveButton("GitHub'da aç") { _, _ ->
+                                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.optString("html_url"))))
+                                }
+                                .setNegativeButton("Daha sonra", null)
+                                .show()
+                        } else if (manual) {
+                            AlertDialog.Builder(this@MainActivity).setMessage("Uygulama güncel (v$current).")
+                                .setPositiveButton("Tamam", null).show()
+                        }
+                    }
+                } finally { connection.disconnect() }
+            } catch (e: Exception) {
+                Log.w(TAG, "Update check failed", e)
+                if (manual) runOnUiThread {
+                    if (!isFinishing && !isDestroyed) AlertDialog.Builder(this@MainActivity)
+                        .setMessage("Güncelleme kontrol edilemedi. İnternet bağlantısını kontrol et.")
+                        .setPositiveButton("Tamam", null).show()
+                }
+            }
+        }
+    }
+
     private fun showSettingsDialog() {
         var reloadNeeded = false
         var dialog: AlertDialog? = null
@@ -571,6 +626,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         container.addView(cursorColorButton)
+
+        container.addView(Button(this).apply {
+            text = "🔄 Güncellemeleri kontrol et"
+            setOnClickListener { dialog?.dismiss(); checkForUpdates(true) }
+        })
 
         // Start page (cycles on each click)
         val startPageButton = Button(this).apply {
