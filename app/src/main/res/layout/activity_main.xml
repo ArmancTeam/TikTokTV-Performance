@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:nextFocusDown="@id/webView"
+        android:nextFocusUp="@id/webView"
+        android:nextFocusLeft="@id/webView"
+        android:nextFocusRight="@id/webView" />
+
+    <!-- Loading overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Logo gigante y pegado a los puntos -->
+            <ImageView
+                android:id="@+id/loadingLogo"
+                android:layout_width="750dp"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:contentDescription="TikTok"
+                android:src="@drawable/loading_logo"
+                android:layout_marginBottom="0dp" />
+
+            <!-- Loader animado estilo TikTok (puntos que se cruzan y funden en morado) -->
+            <com.example.tiktokxsleppify.TikTokLoaderView
+                android:id="@+id/loadingDots"
+                android:layout_width="140dp"
+                android:layout_height="44dp"
+                android:layout_marginTop="-60dp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Error/Retry overlay -->
+    <LinearLayout
+        android:id="@+id/errorOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/tiktok_dark"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="😕"
+            android:textSize="48sp" />
+
+        <TextView
+            android:id="@+id/errorTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/error_offline_title"
+            android:textColor="@color/tiktok_white"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/errorMessage"
+            android:layout_width="480dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/error_offline_message"
+            android:textColor="@color/tiktok_gray"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/tiktok_red"
+            android:focusable="true"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:text="@string/error_retry"
+            android:textColor="@color/tiktok_white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- TV control overlay (scrollable so the longer menu fits any TV height) -->
+    <FrameLayout
+        android:id="@+id/tvMenuOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC050505"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <ScrollView
+            android:id="@+id/tvMenuPanel"
+            android:layout_width="520dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="#F0141414"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="32dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_title"
+                    android:textColor="@color/tiktok_white"
+                    android:textSize="30sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/menu_subtitle"
+                    android:textColor="@color/tiktok_gray"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/tvSearchButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="22dp"
+                    android:focusable="true"
+                    android:text="@string/menu_search"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvVoiceButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_voice"
+                    android:textSize="17sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/tvTabForYouButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="@string/menu_tab_foryou"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/tvTabFollowingButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="@string/menu_tab_following"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/tvTabExploreButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="@string/menu_tab_explore"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/tvTabLiveButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:text="@string/menu_tab_live"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/tvMouseButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_mouse"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvQrLoginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_qr_login"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvMuteButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_mute"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvCleanButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_clean"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvSettingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_settings"
+                    android:textSize="17sp" />
+
+                <Button
+                    android:id="@+id/tvHelpButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:focusable="true"
+                    android:text="@string/menu_help"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:id="@+id/tvStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/menu_status"
+                    android:textColor="@color/tiktok_gray"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+
+    <!-- Help overlay -->
+    <LinearLayout
+        android:id="@+id/tvHelpOverlay"
+        android:layout_width="720dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#EE151515"
+        android:orientation="vertical"
+        android:padding="34dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/help_title"
+            android:textColor="@color/tiktok_white"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:lineSpacingExtra="8dp"
+            android:text="@string/help_body"
+            android:textColor="@color/tiktok_white"
+            android:textSize="19sp" />
+
+        <Button
+            android:id="@+id/tvHelpCloseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="22dp"
+            android:focusable="true"
+            android:text="@string/common_close" />
+    </LinearLayout>
+
+    <!-- Voice search: listening overlay -->
+    <LinearLayout
+        android:id="@+id/voiceOverlay"
+        android:layout_width="640dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#F0141414"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="34dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/voiceMic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎤"
+            android:textSize="56sp" />
+
+        <TextView
+            android:id="@+id/voiceTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/voice_listening"
+            android:textColor="@color/tiktok_gray"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/voicePartial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:minHeight="36dp"
+            android:textColor="@color/tiktok_white"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/voice_hint"
+            android:textColor="@color/tiktok_gray"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- On-screen display (seek, mute, blocked link ...) -->
+    <TextView
+        android:id="@+id/osdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="64dp"
+        android:background="@drawable/osd_bg"
+        android:paddingStart="28dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="14dp"
+        android:textColor="@color/tiktok_white"
+        android:textSize="22sp"
+        android:visibility="gone" />
+
+</FrameLayout>

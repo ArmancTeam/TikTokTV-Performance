@@ -1,0 +1,70 @@
+<resources>
+    <string name="app_name">TikTok TV</string>
+    <string name="launcher_label">TikTok</string>
+
+    <string name="menu_title">TikTok TV</string>
+    <string name="menu_subtitle">Menú del mando</string>
+    <string name="menu_search">🔍 Buscar</string>
+    <string name="menu_tab_foryou">Para ti</string>
+    <string name="menu_tab_following">Siguiendo</string>
+    <string name="menu_tab_explore">Explorar</string>
+    <string name="menu_tab_live">LIVE</string>
+    <string name="menu_mouse">🖱 Mouse virtual</string>
+    <string name="menu_qr_login">📱 Iniciar sesión con QR</string>
+    <string name="menu_mute">🔇 Silenciar / activar sonido</string>
+    <string name="menu_settings">⚙ Ajustes del mando</string>
+    <string name="menu_help">🎮 Controles</string>
+    <string name="menu_status">"OK: elegir  •  BACK: cerrar  •  OK largo: mouse"</string>
+
+    <string name="help_title">🎮 Controles del mando</string>
+    <string name="help_body">"↑ / ↓    Cambiar de video\n← / →    Zona de interacción\n← / → largo    Adelantar / retroceder 10 s\nOK    Reproducir / pausar\nOK largo    Mouse virtual\n⏯ ⏪ ⏩    Reproducir / pausar / saltar\nCH ± o ⏮ ⏭    Video anterior / siguiente\nBACK    Cerrar / atrás\n🔴 ROJO    Mouse sí / no (largo: ajustes)\n🟢 VERDE    Pantalla limpia (solo video)\n🎤 / SEARCH    Búsqueda por voz\nMENU    Menú"</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_cancel">Cancelar</string>
+
+    <string name="error_offline_title">Sin conexión a Internet</string>
+    <string name="error_offline_message">Verifica tu conexión. La página se recarga sola cuando vuelva la red, o presiona OK para reintentar.</string>
+    <string name="error_generic_title">No se pudo cargar TikTok</string>
+    <string name="error_generic_message">Presiona OK para reintentar.</string>
+    <string name="error_http_message">Error del servidor (%1$d). Presiona OK para reintentar.</string>
+    <string name="error_renderer_title">El motor web se detuvo</string>
+    <string name="error_renderer_message">Presiona OK para reiniciar la vista.</string>
+    <string name="error_retry">Reintentar</string>
+
+    <string name="settings_title">Ajustes del mando</string>
+    <string name="settings_mouse_speed">Velocidad del mouse: %1$sx</string>
+    <string name="settings_auto_next">Reproducir el siguiente video automáticamente</string>
+    <string name="settings_block_trackers">Bloquear telemetría y anuncios (arranque más rápido)</string>
+    <string name="settings_disable_av1">Forzar H.264 (desactivar AV1)</string>
+    <string name="settings_start_page">Página de inicio: %1$s</string>
+    <string name="settings_clear_data">Cerrar sesión / borrar datos</string>
+    <string name="settings_clear_confirm_title">¿Borrar todos los datos?</string>
+    <string name="settings_clear_confirm_message">Se cerrará tu sesión y se vaciará la caché.</string>
+    <string name="settings_clear_action">Borrar</string>
+    <string name="settings_clear_done">Datos borrados</string>
+
+    <string name="osd_muted">🔇 Silenciado</string>
+    <string name="osd_unmuted">🔊 Sonido activado</string>
+    <string name="osd_blocked_link">Enlace externo bloqueado</string>
+    <string name="osd_search_not_found">No se encontró el botón de búsqueda de TikTok</string>
+
+    <string name="google_login_title">Inicio de sesión con Google no disponible</string>
+    <string name="google_login_message">"Google bloquea el inicio de sesión dentro de los WebView de TV.\n\nUsa una de estas opciones:\n• Código QR (escanéalo con la app de TikTok en tu teléfono)\n• Correo y contraseña\n• Número de teléfono"</string>
+    <string name="google_login_qr">Mostrar código QR</string>
+    <string name="google_login_page">Página de inicio de sesión</string>
+
+    <!-- Voice search / mouse -->
+    <string name="menu_voice">🎤 Búsqueda por voz</string>
+    <string name="voice_listening">Escuchando…</string>
+    <string name="voice_hint">OK: terminar  •  BACK: cancelar</string>
+    <string name="voice_no_match">No se entendió, inténtalo de nuevo</string>
+    <string name="voice_unavailable">La búsqueda por voz no está disponible en este dispositivo</string>
+    <string name="voice_permission_denied">Se necesita permiso de micrófono para la búsqueda por voz</string>
+    <string name="voice_prompt">Di qué quieres buscar</string>
+    <string name="settings_edge_scroll">Desplazar al mantener el cursor en el borde de la pantalla</string>
+    <string name="osd_mouse_on">🖱 Mouse activado</string>
+    <string name="osd_mouse_off">🖱 Mouse desactivado</string>
+    <string name="menu_clean">🧼 Pantalla limpia</string>
+    <string name="osd_clean_on">✨ Pantalla limpia activada</string>
+    <string name="osd_clean_off">Pantalla limpia desactivada</string>
+    <string name="settings_voice_auto_open">Búsqueda por voz: abrir el primer video automáticamente</string>
+</resources>

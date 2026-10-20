@@ -1,0 +1,86 @@
+<resources>
+    <string name="app_name">TikTok TV</string>
+    <string name="launcher_label">TikTok</string>
+
+    <!-- Menu -->
+    <string name="menu_title">TikTok TV</string>
+    <string name="menu_subtitle">Remote menu</string>
+    <string name="menu_search">🔍 Search</string>
+    <string name="menu_tab_foryou">For You</string>
+    <string name="menu_tab_following">Following</string>
+    <string name="menu_tab_explore">Explore</string>
+    <string name="menu_tab_live">LIVE</string>
+    <string name="menu_mouse">🖱 Virtual mouse</string>
+    <string name="menu_qr_login">📱 Sign in with QR code</string>
+    <string name="menu_mute">🔇 Mute / unmute</string>
+    <string name="menu_settings">⚙ Remote settings</string>
+    <string name="menu_help">🎮 Controls</string>
+    <string name="menu_status">"OK: select  •  BACK: close  •  Hold OK: mouse"</string>
+
+    <!-- Help -->
+    <string name="help_title">🎮 Remote controls</string>
+    <string name="help_body">"↑ / ↓    Change video\n← / →    Interaction area\nHold ← / →    Seek 10 s\nOK    Play / pause\nHold OK    Virtual mouse\n⏯ ⏪ ⏩    Play / pause / seek\nCH ± or ⏮ ⏭    Previous / next video\nBACK    Close / back\n🔴 RED    Mouse on / off (hold: settings)\n🟢 GREEN    Clean screen (video only)\n🎤 / SEARCH    Voice search\nMENU    Menu"</string>
+    <string name="common_close">Close</string>
+    <string name="common_cancel">Cancel</string>
+
+    <!-- Errors -->
+    <string name="error_offline_title">No internet connection</string>
+    <string name="error_offline_message">Check your connection. The page reloads by itself when the network is back, or press OK to retry.</string>
+    <string name="error_generic_title">Could not load TikTok</string>
+    <string name="error_generic_message">Press OK to retry.</string>
+    <string name="error_http_message">Server error (%1$d). Press OK to retry.</string>
+    <string name="error_renderer_title">The web engine stopped</string>
+    <string name="error_renderer_message">Press OK to restart the app view.</string>
+    <string name="error_retry">Retry</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Remote settings</string>
+    <string name="settings_mouse_speed">Mouse speed: %1$s×</string>
+    <string name="settings_auto_next">Auto-play next video</string>
+    <string name="settings_block_trackers">Block telemetry and ads (faster start)</string>
+    <string name="settings_disable_av1">Force H.264 (disable AV1)</string>
+    <string name="settings_start_page">Start page: %1$s</string>
+    <string name="settings_clear_data">Sign out / clear data</string>
+    <string name="settings_clear_confirm_title">Clear all data?</string>
+    <string name="settings_clear_confirm_message">You will be signed out and the cache will be emptied.</string>
+    <string name="settings_clear_action">Clear</string>
+    <string name="settings_clear_done">Data cleared</string>
+
+    <!-- On-screen messages -->
+    <string name="osd_muted">🔇 Muted</string>
+    <string name="osd_unmuted">🔊 Sound on</string>
+    <string name="osd_blocked_link">External link blocked</string>
+    <string name="osd_search_not_found">TikTok search button not found</string>
+
+    <!-- Google sign-in -->
+    <string name="google_login_title">Google sign-in unavailable</string>
+    <string name="google_login_message">"Google blocks sign-in inside TV web views.\n\nUse one of these instead:\n• QR code (scan it with the TikTok app on your phone)\n• Email / password\n• Phone number"</string>
+    <string name="google_login_qr">Show QR code</string>
+    <string name="google_login_page">Login page</string>
+
+    <!-- Voice search / mouse -->
+    <string name="menu_voice">🎤 Voice search</string>
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_hint">OK: done  •  BACK: cancel</string>
+    <string name="voice_no_match">Could not understand, try again</string>
+    <string name="voice_unavailable">Voice search is not available on this device</string>
+    <string name="voice_permission_denied">Microphone permission is needed for voice search</string>
+    <string name="voice_prompt">Say what to search for</string>
+    <string name="settings_edge_scroll">Scroll when the cursor is held against the screen edge</string>
+    <string name="osd_mouse_on">🖱 Mouse on</string>
+    <string name="osd_mouse_off">🖱 Mouse off</string>
+    <string name="menu_clean">🧼 Clean screen</string>
+    <string name="osd_clean_on">✨ Clean screen on</string>
+    <string name="osd_clean_off">Clean screen off</string>
+    <string name="settings_voice_auto_open">Voice search: open the first video automatically</string>
+    <string name="settings_amoled">AMOLED mode (pure black background)</string>
+    <string name="settings_cursor_color">Cursor color: %1$s</string>
+    <string name="settings_cursor_color_title">Choose cursor color</string>
+    <string name="cursor_pink">TikTok pink</string>
+    <string name="cursor_cyan">Cyan</string>
+    <string name="cursor_white">White</string>
+    <string name="cursor_yellow">Yellow</string>
+    <string name="cursor_green">Green</string>
+    <string name="cursor_purple">Purple</string>
+    <string name="cursor_blue">Blue</string>
+</resources>
