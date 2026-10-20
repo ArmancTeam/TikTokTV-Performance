@@ -3,6 +3,7 @@ package com.example.tiktokxsleppify
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.SearchManager
+import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -14,6 +15,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -29,6 +31,7 @@ import android.webkit.*
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
@@ -84,6 +87,7 @@ class MainActivity : AppCompatActivity() {
     private var isPaused = false
     private var googleDialog: AlertDialog? = null
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var pendingInstallUri: Uri? = null
 
     // Voice search
     private var speechRecognizer: SpeechRecognizer? = null
@@ -221,6 +225,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isPaused = false
+        pendingInstallUri?.let { uri ->
+            if (android.os.Build.VERSION.SDK_INT < 26 || packageManager.canRequestPackageInstalls()) {
+                pendingInstallUri = null
+                launchApkInstaller(uri)
+            }
+        }
         setupFullscreen()
         if (!webViewDead) {
             webView.onResume()
@@ -491,9 +501,9 @@ class MainActivity : AppCompatActivity() {
                         if (newer) {
                             AlertDialog.Builder(this@MainActivity)
                                 .setTitle("Yeni sürüm: v$tag")
-                                .setMessage("Mevcut sürüm: v$current\nYeni sürüm: v$tag\n\nGitHub'dan APK indirme sayfasını açmak ister misin?")
-                                .setPositiveButton("GitHub'da aç") { _, _ ->
-                                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.optString("html_url"))))
+                                .setMessage("Mevcut sürüm: v$current\nYeni sürüm: v$tag\n\nYeni APK uygulama içinden indirilecek. İndirme tamamlanınca Android yükleme ekranı açılacak.")
+                                .setPositiveButton("İndir ve yükle") { _, _ ->
+                                    downloadLatestApk(release)
                                 }
                                 .setNegativeButton("Daha sonra", null)
                                 .show()
@@ -512,6 +522,188 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+    // Downloads the APK asset from the latest public GitHub release and opens Android's installer.
+    private fun downloadLatestApk(release: JSONObject) {
+        try {
+            val assets = release.optJSONArray("assets")
+            var apkUrl: String? = null
+            var apkName = "TikTokTV-update.apk"
+            if (assets != null) {
+                for (i in 0 until assets.length()) {
+                    val asset = assets.optJSONObject(i) ?: continue
+                    val name = asset.optString("name")
+                    val url = asset.optString("browser_download_url")
+                    if (name.endsWith(".apk", ignoreCase = true) && url.startsWith("https://")) {
+                        apkName = name
+                        apkUrl = url
+                        break
+                    }
+                }
+            }
+            if (apkUrl.isNullOrBlank()) {
+                AlertDialog.Builder(this)
+                    .setTitle("APK bulunamadı")
+                    .setMessage("GitHub sürümünde indirilebilir bir .apk dosyası yok.")
+                    .setPositiveButton("Tamam", null)
+                    .show()
+                return
+            }
+
+            val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val request = DownloadManager.Request(Uri.parse(apkUrl))
+                .setTitle("TikTok TV güncellemesi")
+                .setDescription("$apkName indiriliyor…")
+                .setMimeType("application/vnd.android.package-archive")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "TikTokTV-update.apk")
+
+            val downloadId = manager.enqueue(request)
+            showApkDownloadProgress(manager, downloadId, apkName)
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not start APK download", e)
+            AlertDialog.Builder(this)
+                .setTitle("İndirme başlatılamadı")
+                .setMessage("İndirme başlatılamadı: ${e.localizedMessage ?: "bilinmeyen hata"}")
+                .setPositiveButton("Tamam", null)
+                .show()
+        }
+    }
+
+    private fun showApkDownloadProgress(manager: DownloadManager, downloadId: Long, apkName: String) {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24), dp(12), dp(24), dp(12))
+        }
+        val status = TextView(this).apply {
+            text = "GitHub'dan APK indiriliyor…"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+        }
+        val progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            isIndeterminate = true
+        }
+        layout.addView(status)
+        layout.addView(progress)
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("TikTok TV güncellemesi")
+            .setView(layout)
+            .setCancelable(false)
+            .setNegativeButton("Kapat", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener { dialog.dismiss() }
+        }
+        dialog.show()
+
+        val poll = object : Runnable {
+            override fun run() {
+                if (isFinishing || isDestroyed) {
+                    dialog.dismiss()
+                    return
+                }
+                val query = DownloadManager.Query().setFilterById(downloadId)
+                manager.query(query).use { cursor ->
+                    if (!cursor.moveToFirst()) {
+                        if (dialog.isShowing) dialog.dismiss()
+                        showUpdateError("İndirme kaydı bulunamadı.")
+                        return
+                    }
+                    val statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                    val downloadedCol = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                    val totalCol = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                    val state = cursor.getInt(statusCol)
+                    val downloaded = cursor.getLong(downloadedCol)
+                    val total = cursor.getLong(totalCol)
+                    if (total > 0) {
+                        progress.isIndeterminate = false
+                        progress.progress = ((downloaded * 100L) / total).toInt().coerceIn(0, 100)
+                        status.text = "İndiriliyor: ${progress.progress}%  (${formatBytes(downloaded)} / ${formatBytes(total)})"
+                    } else {
+                        progress.isIndeterminate = true
+                        status.text = "APK indiriliyor… ${formatBytes(downloaded)}"
+                    }
+                    when (state) {
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            if (dialog.isShowing) dialog.dismiss()
+                            val uri = manager.getUriForDownloadedFile(downloadId)
+                            if (uri == null) {
+                                showUpdateError("İndirilen APK dosyasına erişilemedi.")
+                            } else {
+                                installDownloadedApk(uri)
+                            }
+                            return
+                        }
+                        DownloadManager.STATUS_FAILED -> {
+                            if (dialog.isShowing) dialog.dismiss()
+                            val reasonCol = cursor.getColumnIndex(DownloadManager.COLUMN_REASON)
+                            val reason = if (reasonCol >= 0) cursor.getInt(reasonCol) else -1
+                            showUpdateError("APK indirilemedi. Hata kodu: $reason")
+                            return
+                        }
+                    }
+                }
+                uiHandler.postDelayed(this, 500)
+            }
+        }
+        uiHandler.post(poll)
+    }
+
+    private fun formatBytes(bytes: Long): String {
+        if (bytes < 1024) return "$bytes B"
+        if (bytes < 1024 * 1024) return String.format(Locale.ROOT, "%.1f KB", bytes / 1024.0)
+        return String.format(Locale.ROOT, "%.1f MB", bytes / (1024.0 * 1024.0))
+    }
+
+    private fun installDownloadedApk(uri: Uri) {
+        if (android.os.Build.VERSION.SDK_INT >= 26 && !packageManager.canRequestPackageInstalls()) {
+            pendingInstallUri = uri
+            AlertDialog.Builder(this)
+                .setTitle("Yükleme izni gerekli")
+                .setMessage("Android, uygulama dışından indirilen APK'nın yüklenmesine izin vermiyor. Açılan ayarlarda bu uygulama için 'Bu kaynaktan izin ver' seçeneğini aç. Geri döndüğünde yükleyici otomatik açılacak.")
+                .setPositiveButton("Ayarlara git") { _, _ ->
+                    try {
+                        startActivity(Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            Uri.parse("package:$packageName")))
+                    } catch (e: Exception) {
+                        pendingInstallUri = null
+                        showUpdateError("Bilinmeyen kaynak ayarları açılamadı.")
+                    }
+                }
+                .setNegativeButton("İptal") { _, _ -> pendingInstallUri = null }
+                .show()
+            return
+        }
+        launchApkInstaller(uri)
+    }
+
+    private fun launchApkInstaller(uri: Uri) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            showUpdateError("Bu cihazda APK yükleyicisi bulunamadı.")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to launch APK installer", e)
+            showUpdateError("APK yükleyicisi açılamadı: ${e.localizedMessage ?: "bilinmeyen hata"}")
+        }
+    }
+
+    private fun showUpdateError(message: String) {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle("Güncelleme hatası")
+            .setMessage(message)
+            .setPositiveButton("Tamam", null)
+            .show()
     }
 
     private fun showSettingsDialog() {
