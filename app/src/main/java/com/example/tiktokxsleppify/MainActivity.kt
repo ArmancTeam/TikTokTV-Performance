@@ -993,24 +993,40 @@ class MainActivity : AppCompatActivity() {
                 val antiTouchScript = """
                     (function() {
                         try {
-                            Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, get: function () { return 0; } });
-                            Object.defineProperty(navigator, 'msMaxTouchPoints', { configurable: true, get: function () { return 0; } });
-                            if ('ontouchstart' in window) { try { delete window.ontouchstart; } catch (e) {} }
+                            var isLoginPage = /\\/(login|passport)(\\/|\\?|$)/i.test(location.pathname);
+                            if (isLoginPage) return;
+
+                            Object.defineProperty(navigator, 'maxTouchPoints', {
+                                configurable: true,
+                                get: function () { return 0; }
+                            });
+                            Object.defineProperty(navigator, 'msMaxTouchPoints', {
+                                configurable: true,
+                                get: function () { return 0; }
+                            });
+
+                            function forceVP() {
+                                try {
+                                    var head = document.head ||
+                                        document.getElementsByTagName('head')[0] ||
+                                        document.documentElement;
+                                    if (!head) return;
+                                    var old = document.querySelectorAll('meta[name="viewport"]');
+                                    for (var i = 0; i < old.length; i++) {
+                                        if (old[i].parentNode) old[i].parentNode.removeChild(old[i]);
+                                    }
+                                    var m = document.createElement('meta');
+                                    m.name = 'viewport';
+                                    m.content = 'width=1280';
+                                    head.appendChild(m);
+                                } catch (e) {}
+                            }
+
+                            forceVP();
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', forceVP, { once: true });
+                            }
                         } catch (e) {}
-                        function forceVP() {
-                            try {
-                                var head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-                                if (!head) return;
-                                var old = document.querySelectorAll('meta[name="viewport"]');
-                                for (var i = 0; i < old.length; i++) { if (old[i].parentNode) old[i].parentNode.removeChild(old[i]); }
-                                var m = document.createElement('meta');
-                                m.name = 'viewport';
-                                m.content = 'width=1280';
-                                head.appendChild(m);
-                            } catch (e) {}
-                        }
-                        forceVP();
-                        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', forceVP, { once: true });
                     })();
                 """.trimIndent()
                 view?.evaluateJavascript(antiTouchScript, null)
@@ -1068,6 +1084,35 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
+
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            try {
+                val request = DownloadManager.Request(Uri.parse(url))
+                request.setMimeType(mimeType)
+                request.addRequestHeader("User-Agent", userAgent ?: webView.settings.userAgentString)
+                val cookie = CookieManager.getInstance().getCookie(url)
+                if (!cookie.isNullOrBlank()) {
+                    request.addRequestHeader("Cookie", cookie)
+                }
+                request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType))
+                request.setDescription("Video indiriliyor")
+                request.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                )
+                request.setDestinationInExternalFilesDir(
+                    this,
+                    Environment.DIRECTORY_DOWNLOADS,
+                    URLUtil.guessFileName(url, contentDisposition, mimeType)
+                )
+                val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                manager.enqueue(request)
+                showOsd("İndirme başlatıldı")
+            } catch (e: Exception) {
+                Log.e(TAG, "Video download failed", e)
+                showOsd("İndirme başlatılamadı")
+            }
+        }
+
         webView.webChromeClient = WebChromeClient()
     }
 
@@ -1243,6 +1288,43 @@ class MainActivity : AppCompatActivity() {
             Locale.US, "window.TikTokTV.scrollAt(%.1f,%.1f,%d,%d,%d)", x, y, webView.width, webView.height, dy
         )
         bridgeCall(expr)
+    }
+
+
+    private fun shareCurrentVideo() {
+        if (webViewDead) {
+            showOsd("TikTok sayfası hazır değil")
+            return
+        }
+
+        bridgeCall("window.TikTokTV.getShareUrl()") { result ->
+            runOnUiThread {
+                val videoUrl = result
+                    ?.trim('"')
+                    ?.replace("\\u003D", "=")
+                    ?.replace("\\u0026", "&")
+                    ?.replace("\\/", "/")
+                    .orEmpty()
+
+                if (!videoUrl.startsWith("https://www.tiktok.com/") ||
+                    videoUrl.contains("/foryou") ||
+                    videoUrl.contains("/login")) {
+                    showOsd("Video bağlantısı bulunamadı")
+                    return@runOnUiThread
+                }
+
+                try {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, videoUrl)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Videoyu paylaş"))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Video share failed", e)
+                    showOsd("Paylaşım açılamadı")
+                }
+            }
+        }
     }
 
     private fun showOsd(message: String) {
@@ -1579,7 +1661,11 @@ class MainActivity : AppCompatActivity() {
                 virtualMouse.releaseOk()
             } else if (event.eventTime - event.downTime < OK_LONG_PRESS_MS) {
                 if (errorOverlay.visibility == View.VISIBLE) retryButton.performClick()
-                else sendBridgeCommand("select")
+                else bridgeCall("window.TikTokTV.select()") { result ->
+                        if (result == "native_share") {
+                            runOnUiThread { shareCurrentVideo() }
+                        }
+                    }
             }
             return true
         }

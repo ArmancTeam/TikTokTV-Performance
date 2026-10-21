@@ -403,11 +403,38 @@
             if (document.activeElement) document.activeElement.blur();
             return 'sidebar_off';
         },
+        getShareUrl: function () {
+            try {
+                var item = getActiveItem();
+                if (item) {
+                    var links = item.querySelectorAll('a[href*="/video/"]');
+                    for (var i = 0; i < links.length; i++) {
+                        var href = links[i].href;
+                        if (href && href.indexOf('tiktok.com/') !== -1) return href;
+                    }
+                }
+                return window.location.href;
+            } catch (e) {
+                return window.location.href;
+            }
+        },
+
         select: function () {
             try {
-                // Priority: click focused element in sidebar mode
+                // Native Android share: intercept the focused TikTok share button.
                 if (sidebarMode && document.activeElement && document.activeElement !== document.body) {
-                    document.activeElement.click();
+                    var focused = document.activeElement;
+                    var shareSelector = '[data-e2e="share-icon"], [data-e2e="browse-share-icon"]';
+                    var shareButton = null;
+
+                    try {
+                        if (focused.matches && focused.matches(shareSelector)) shareButton = focused;
+                        if (!shareButton && focused.querySelector) shareButton = focused.querySelector(shareSelector);
+                        if (!shareButton && focused.closest) shareButton = focused.closest(shareSelector);
+                        if (shareButton) return 'native_share';
+                    } catch (e) { }
+
+                    focused.click();
                     return 'sidebar_clicked';
                 }
 
